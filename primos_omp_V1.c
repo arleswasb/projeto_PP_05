@@ -3,7 +3,7 @@
 #include <math.h>
 #include <omp.h>
 
-// Função para verificar se um número é primo (sem alterações)
+// Função para verificar se um número é primo
 int is_prime(int num) {
     if (num <= 1) return 0;
     if (num <= 3) return 1;
@@ -17,62 +17,56 @@ int is_prime(int num) {
 }
 
 int main() {
-    // Aumentar o valor de 'n' tornará os tempos mais longos e a análise mais clara.
-    int n = 30000000; 
+    int n = 30000000;
+    double start_time, sequential_time, parallel_time_corr, parallel_time_incorr;
+    int total_primes_seq = 0, total_primes_par_corr = 0, total_primes_par_incorr = 0;
 
-    double start_time, sequential_time, parallel_time;
-    
-    // --- 1. BASELINE: VERSÃO SEQUENCIAL ---
+    // --- 1. VERSÃO SEQUENCIAL (BASELINE) ---
     printf("--- Executando Versão Sequencial (Baseline) ---\n");
-    int total_primes_seq = 0;
     start_time = omp_get_wtime();
-
     for (int i = 2; i <= n; i++) {
         if (is_prime(i)) {
             total_primes_seq++;
         }
     }
-
     sequential_time = omp_get_wtime() - start_time;
-    printf("Números primos encontrados: %d\n", total_primes_seq);
-    printf("Tempo de execução sequencial: %f segundos\n\n", sequential_time);
+    printf("Resultado: %d | Tempo: %f segundos\n\n", total_primes_seq, sequential_time);
 
-
-    // --- 2. TESTE DE ESCALABILIDADE PARALELA ---
-    printf("--- Iniciando Teste de Escalabilidade Paralela ---\n");
-    printf("------------------------------------------------------------------\n");
-    printf("| Threads | Tempo (s)  | Speedup | Eficiência |\n");
-    printf("------------------------------------------------------------------\n");
-
-    // Laço para testar com 1 a 16 threads
-    for (int num_threads = 1; num_threads <= 16; num_threads++) {
-        // Define o número de threads para a próxima região paralela
+    // --- 2. VERSÃO PARALELA COM CONDIÇÃO DE CORRIDA ---
+    printf("--- Executando Versão Paralela (Com Condição de Corrida) ---\n");
+    for (int num_threads = 2; num_threads <= 16; num_threads *= 2) {
         omp_set_num_threads(num_threads);
-
-        int total_primes_par = 0;
+        total_primes_par_incorr = 0;
         start_time = omp_get_wtime();
-        
-        #pragma omp parallel for reduction(+:total_primes_par) schedule(guided)
+        #pragma omp parallel for
         for (int i = 2; i <= n; i++) {
             if (is_prime(i)) {
-                total_primes_par++;
+                total_primes_par_incorr++;
             }
         }
-
-        parallel_time = omp_get_wtime() - start_time;
-        
-        // Verificação para garantir que o resultado está correto
-        if (total_primes_par != total_primes_seq) {
-            printf("Erro: O resultado com %d threads é inconsistente!\n", num_threads);
-        }
-
-        double speedup = sequential_time / parallel_time;
-        double efficiency = speedup / num_threads;
-
-        printf("| %-7d | %-10.6f | %-7.2fx | %-10.2f%% |\n", 
-               num_threads, parallel_time, speedup, efficiency * 100.0);
+        parallel_time_incorr = omp_get_wtime() - start_time;
+        printf("Threads: %2d | Resultado (Incorreto): %d | Tempo: %f segundos\n", num_threads, total_primes_par_incorr, parallel_time_incorr);
     }
-    printf("------------------------------------------------------------------\n");
+    printf("\n");
+
+    // --- 3. VERSÃO PARALELA CORRIGIDA COM REDUCTION ---
+printf("--- Executando Versão Paralela (Corrigida com Reduction e Guided Schedule) ---\n");
+// A correção está na terceira parte do for: 'num_threads *= 2'
+for (int num_threads = 1; num_threads <= 16; num_threads *= 2) {
+    omp_set_num_threads(num_threads);
+    total_primes_par_corr = 0;
+    start_time = omp_get_wtime();
+
+    #pragma omp parallel for reduction(+:total_primes_par_corr) schedule(guided)
+    for (int i = 2; i <= n; i++) {
+        if (is_prime(i)) {
+            total_primes_par_corr++;
+        }
+    }
+    
+    parallel_time_corr = omp_get_wtime() - start_time;
+    printf("Threads: %2d | Resultado (Correto):   %d | Tempo: %f segundos\n", num_threads, total_primes_par_corr, parallel_time_corr);
+}
 
     return 0;
 }
