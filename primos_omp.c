@@ -22,7 +22,7 @@ int is_prime(int num) {
 
 int main() {
     //Valor máximo para a contagem.
-    int n = 2000000; 
+    int n = 20000000; 
 
     double start_time, end_time;
     
@@ -38,12 +38,12 @@ int main() {
     }
 
     end_time = omp_get_wtime();
-    printf("Números primos encontrados: %d\n", total_primes_seq);
-    printf("Tempo de execução sequencial: %f segundos\n\n", end_time - start_time);
+    printf("Numeros primos encontrados: %d\n", total_primes_seq);
+    printf("Tempo de execucao sequencial: %f segundos\n\n", end_time - start_time);
 
 
     // --- VERSÃO PARALELA ---
-    printf("--- Executando Versão Paralela ---\n");
+    printf("--- Executando Versao Paralela ---\n");
     int total_primes_par = 0;
     start_time = omp_get_wtime();
 
@@ -58,12 +58,12 @@ int main() {
     }
 
     end_time = omp_get_wtime();
-    printf("Resultado (incorreto) da versão paralela: %d\n", total_primes_par);
-    printf("Tempo de execução paralela (incorreto): %f segundos\n\n", end_time - start_time);
+    printf("Resultado (incorreto) da versao paralela: %d\n", total_primes_par);
+    printf("Tempo de execucao paralela (incorreto): %f segundos\n\n", end_time - start_time);
 
 
     // --- VERSÃO PARALELA (CORRIGIDA) ---
-    printf("--- Executando Versão Paralela (Corrigida) ---\n");
+    printf("--- Executando Versao Paralela (Corrigida) ---\n");
     total_primes_par = 0; // Reinicia a contagem
     start_time = omp_get_wtime();
     
@@ -78,8 +78,8 @@ int main() {
     }
 
     end_time = omp_get_wtime();
-    printf("Resultado (correto) da versão paralela: %d\n", total_primes_par);
-    printf("Tempo de execução paralela (correto): %f segundos\n", end_time - start_time);
+    printf("Resultado (correto) da versao paralela: %d\n", total_primes_par);
+    printf("Tempo de execucao paralela (correto): %f segundos\n", end_time - start_time);
 
     return 0;
 }
